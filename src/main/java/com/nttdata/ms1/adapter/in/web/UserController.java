@@ -4,6 +4,7 @@ import com.nttdata.ms1.adapter.in.web.dto.CreateUserRequest;
 import com.nttdata.ms1.adapter.in.web.dto.UpdateUserRequest;
 import com.nttdata.ms1.adapter.in.web.dto.UserResponse;
 import com.nttdata.ms1.application.port.in.CreateUserUseCase;
+import com.nttdata.ms1.application.port.in.DeleteUserUseCase;
 import com.nttdata.ms1.application.port.in.GetUserByIdUseCase;
 import com.nttdata.ms1.application.port.in.ListUsersUseCase;
 import com.nttdata.ms1.application.port.in.UpdateUserUseCase;
@@ -13,6 +14,7 @@ import com.nttdata.ms1.domain.model.User;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,17 +35,20 @@ public class UserController {
     private final GetUserByIdUseCase getUserByIdUseCase;
     private final ListUsersUseCase listUsersUseCase;
     private final UpdateUserUseCase updateUserUseCase;
+    private final DeleteUserUseCase deleteUserUseCase;
 
     public UserController(
             CreateUserUseCase createUserUseCase,
             GetUserByIdUseCase getUserByIdUseCase,
             ListUsersUseCase listUsersUseCase,
-            UpdateUserUseCase updateUserUseCase
+            UpdateUserUseCase updateUserUseCase,
+            DeleteUserUseCase deleteUserUseCase
     ) {
         this.createUserUseCase = createUserUseCase;
         this.getUserByIdUseCase = getUserByIdUseCase;
         this.listUsersUseCase = listUsersUseCase;
         this.updateUserUseCase = updateUserUseCase;
+        this.deleteUserUseCase = deleteUserUseCase;
     }
 
     @PostMapping
@@ -83,6 +88,12 @@ public class UserController {
                 )
         );
         return ResponseEntity.ok(toResponse(updatedUser));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        deleteUserUseCase.execute(id);
+        return ResponseEntity.noContent().build();
     }
 
     @ExceptionHandler(DuplicateEmailException.class)

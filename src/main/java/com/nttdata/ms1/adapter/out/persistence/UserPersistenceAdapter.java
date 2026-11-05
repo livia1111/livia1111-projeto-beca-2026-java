@@ -42,6 +42,11 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
         return repository.findAll().stream().map(this::toDomain).toList();
     }
 
+    @Override
+    public void deleteById(UserId id) {
+        repository.deleteById(id.value());
+    }
+
     private UserJpaEntity toEntity(User user) {
         return new UserJpaEntity(
                 user.id().value(),
