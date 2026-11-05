@@ -6,6 +6,7 @@ import com.nttdata.ms1.adapter.in.web.dto.UserResponse;
 import com.nttdata.ms1.application.port.in.CreateUserUseCase;
 import com.nttdata.ms1.application.port.in.DeleteUserUseCase;
 import com.nttdata.ms1.application.port.in.GetUserByIdUseCase;
+import com.nttdata.ms1.application.port.in.ImportUsersUseCase;
 import com.nttdata.ms1.application.port.in.ListUsersUseCase;
 import com.nttdata.ms1.application.port.in.UpdateUserUseCase;
 import com.nttdata.ms1.domain.exception.DuplicateEmailException;
@@ -13,6 +14,7 @@ import com.nttdata.ms1.domain.exception.UserNotFoundException;
 import com.nttdata.ms1.domain.model.User;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,8 +24,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,19 +41,22 @@ public class UserController {
     private final ListUsersUseCase listUsersUseCase;
     private final UpdateUserUseCase updateUserUseCase;
     private final DeleteUserUseCase deleteUserUseCase;
+    private final ImportUsersUseCase importUsersUseCase;
 
     public UserController(
             CreateUserUseCase createUserUseCase,
             GetUserByIdUseCase getUserByIdUseCase,
             ListUsersUseCase listUsersUseCase,
             UpdateUserUseCase updateUserUseCase,
-            DeleteUserUseCase deleteUserUseCase
+            DeleteUserUseCase deleteUserUseCase,
+            ImportUsersUseCase importUsersUseCase
     ) {
         this.createUserUseCase = createUserUseCase;
         this.getUserByIdUseCase = getUserByIdUseCase;
         this.listUsersUseCase = listUsersUseCase;
         this.updateUserUseCase = updateUserUseCase;
         this.deleteUserUseCase = deleteUserUseCase;
+        this.importUsersUseCase = importUsersUseCase;
     }
 
     @PostMapping
@@ -63,6 +71,12 @@ public class UserController {
 
         UserResponse response = toResponse(createdUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping(path = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ImportUsersUseCase.Result> importUsers(@RequestParam("file") MultipartFile file) throws IOException {
+        ImportUsersUseCase.Result result = importUsersUseCase.execute(file.getInputStream());
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")
