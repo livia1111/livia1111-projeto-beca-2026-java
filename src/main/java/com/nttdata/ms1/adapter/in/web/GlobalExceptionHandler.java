@@ -8,10 +8,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
+import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -40,6 +43,29 @@ public class GlobalExceptionHandler {
                 exception.getMessage(),
                 request.getRequestURI()
         );
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ValidationErrorResponse> handleValidationException(
+            MethodArgumentNotValidException exception,
+            HttpServletRequest request
+    ) {
+        List<FieldValidationError> fieldErrors = exception.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(this::toFieldError)
+                .toList();
+
+        ValidationErrorResponse body = new ValidationErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Validation failed",
+                request.getRequestURI(),
+                fieldErrors
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -89,12 +115,35 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(body);
     }
 
+    private FieldValidationError toFieldError(FieldError fieldError) {
+        return new FieldValidationError(
+                fieldError.getField(),
+                fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage() : "invalid value"
+        );
+    }
+
     public record ErrorResponse(
             Instant timestamp,
             int status,
             String error,
             String message,
             String path
+    ) {
+    }
+
+    public record ValidationErrorResponse(
+            Instant timestamp,
+            int status,
+            String error,
+            String message,
+            String path,
+            List<FieldValidationError> fieldErrors
+    ) {
+    }
+
+    public record FieldValidationError(
+            String field,
+            String message
     ) {
     }
 }
