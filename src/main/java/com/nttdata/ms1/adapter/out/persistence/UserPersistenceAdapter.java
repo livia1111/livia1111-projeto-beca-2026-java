@@ -8,6 +8,9 @@ import com.nttdata.ms1.domain.model.UserName;
 import com.nttdata.ms1.domain.model.UserPassword;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Optional;
+
 @Component
 public class UserPersistenceAdapter implements UserRepositoryPort {
 
@@ -27,6 +30,16 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
     @Override
     public boolean existsByEmail(UserEmail email) {
         return repository.existsByEmail(email.value());
+    }
+
+    @Override
+    public Optional<User> findById(UserId id) {
+        return repository.findById(id.value()).map(this::toDomain);
+    }
+
+    @Override
+    public List<User> findAll() {
+        return repository.findAll().stream().map(this::toDomain).toList();
     }
 
     private UserJpaEntity toEntity(User user) {
