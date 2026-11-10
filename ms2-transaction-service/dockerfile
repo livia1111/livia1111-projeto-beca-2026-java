@@ -2,6 +2,7 @@
 FROM maven:3.9-eclipse-temurin-25-alpine AS build
 WORKDIR /build
 
+
 # Copia apenas o pom.xml primeiro para aproveitar o cache do Docker
 COPY pom.xml ./
 RUN mvn -B -ntp dependency:go-offline
