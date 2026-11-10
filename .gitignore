@@ -1,0 +1,26 @@
+# Build
+target/
+
+# Ambiente e segredos locais
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Logs
+*.log
+
+# Certificados e chaves locais
+*.key
+*.pem
+
+# Sistema operacional
+.DS_Store
+Thumbs.db

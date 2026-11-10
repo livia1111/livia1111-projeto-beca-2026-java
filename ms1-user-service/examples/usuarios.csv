@@ -1,0 +1,5 @@
+nome;email;role;senha
+Ana;ana.csv@example.com;USER;SenhaTeste123
+Duplicado;ANA.CSV@example.com;USER;SenhaTeste123
+Inválido;email-invalido;USER;SenhaTeste123
+Bruno;bruno.csv@example.com;USER;SenhaTeste123

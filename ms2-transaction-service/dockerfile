@@ -1,0 +1,24 @@
+# Estágio 1: Build
+FROM maven:3.9-eclipse-temurin-25-alpine AS build
+WORKDIR /build
+
+# Copia apenas o pom.xml primeiro para aproveitar o cache do Docker
+COPY pom.xml ./
+RUN mvn -B -ntp dependency:go-offline
+
+# Copia o código fonte e gera o pacote
+COPY src ./src
+RUN mvn -B -ntp package -DskipTests \
+    && cp target/*.jar /build/app.jar
+
+# Estágio 2: Runtime
+FROM eclipse-temurin:25-jre-alpine AS runtime
+RUN addgroup -S app && adduser -S app -G app
+WORKDIR /app
+
+# Copia o jar gerado e ajusta as permissões
+COPY --from=build --chown=app:app /build/app.jar ./app.jar
+
+USER app
+EXPOSE 8082
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

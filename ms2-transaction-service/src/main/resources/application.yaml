@@ -1,0 +1,3 @@
+spring:
+  application:
+    name: ms2-transaction-service
