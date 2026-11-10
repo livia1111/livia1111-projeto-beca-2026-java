@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfiguration {
     @Bean
@@ -20,6 +21,9 @@ public class SecurityConfiguration {
                 .authenticationProvider(provider)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/status", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll()
+                        // Permite que o MS2 consulte a existência de um usuário sem Basic Auth
+                        .requestMatchers(HttpMethod.GET, "/users/*/exists").permitAll() 
+                        
                         .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/users/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/users", "/users/import").hasRole("ADMIN")
