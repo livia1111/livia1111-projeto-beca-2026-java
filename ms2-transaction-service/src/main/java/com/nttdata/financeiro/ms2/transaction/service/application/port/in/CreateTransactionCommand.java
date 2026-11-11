@@ -1,6 +1,7 @@
 package com.nttdata.financeiro.ms2.transaction.service.application.port.in;
 
 import com.nttdata.financeiro.ms2.transaction.service.domain.model.TransactionType;
+import com.nttdata.financeiro.ms2.transaction.service.domain.model.TransactionCurrency;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -14,6 +15,7 @@ public record CreateTransactionCommand(
         UUID targetUserId,
         TransactionType type,
         BigDecimal amount,
+        TransactionCurrency currency,
         String description,
         String category,
         UUID originalTransactionId
