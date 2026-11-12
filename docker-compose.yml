@@ -1,41 +1,97 @@
 services:
-  postgres:
+  ms1-db:
     image: postgres:17-alpine
+    container_name: ms1-db
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:?Defina POSTGRES_DB no .env}
-      POSTGRES_USER: ${POSTGRES_USER:?Defina POSTGRES_USER no .env}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
+      POSTGRES_DB: ms1_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ms1_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ms1_db"]
       interval: 5s
       timeout: 5s
-      retries: 20
+      retries: 5
       start_period: 10s
+    networks:
+      - beca-network
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "127.0.0.1:${APP_PORT:-8080}:8080"
+  ms2-db:
+    image: postgres:17-alpine
+    container_name: ms2-db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?Defina POSTGRES_DB no .env}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:?Defina POSTGRES_USER no .env}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
-    restart: unless-stopped
+      POSTGRES_DB: ms2_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - ms2_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/status || exit 1"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ms2_db"]
+      interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 10s
+    networks:
+      - beca-network
+
+  ms1-app:
+    build:
+      context: ./ms1-user-service
+      dockerfile: Dockerfile
+    container_name: ms1-app
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ms1-db:5432/ms1_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || wget -qO- http://localhost:8080/status || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
     depends_on:
-      postgres:
+      ms1-db:
         condition: service_healthy
+    networks:
+      - beca-network
+
+  ms2-app:
+    build:
+      context: ./ms2-transaction-service
+      dockerfile: Dockerfile
+    container_name: ms2-app
+    ports:
+      - "127.0.0.1:8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ms2-db:5432/ms2_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      MS1_API_URL: http://ms1-app:8080
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    depends_on:
+      ms2-db:
+        condition: service_healthy
+      ms1-app:
+        condition: service_started
+    networks:
+      - beca-network
+
+networks:
+  beca-network:
+    driver: bridge
 
 volumes:
-  postgres_data:
+  ms1_postgres_data:
+  ms2_postgres_data:

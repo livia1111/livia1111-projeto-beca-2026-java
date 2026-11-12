@@ -165,6 +165,19 @@ public class UserController {
         return mapper.toResponse(manage.buscar(id));
     }
 
+     @GetMapping("/{id}/exists")
+    @Operation(summary = "Verificar se usuário existe", 
+               description = "Endpoint aberto para comunicação entre microsserviços (usado pelo MS2 para validar destinatários de transferência).")
+    public ResponseEntity<Void> verificarExistencia(@PathVariable UUID id) {
+        try {
+            manage.buscar(id);
+            return ResponseEntity.ok().build();
+        } catch (com.nttdata.users.application.exception.UserNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    // =========================================================================
+
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar usuário",
         description = "Atualiza nome, e-mail e senha. O próprio usuário ou um ADMIN pode realizar a operação.",
