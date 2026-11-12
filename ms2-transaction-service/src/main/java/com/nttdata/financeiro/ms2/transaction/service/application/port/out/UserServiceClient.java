@@ -11,8 +11,8 @@ public interface UserServiceClient {
      *
      * @throws com.nttdata.financeiro.ms2.transaction.service.application.exception.UserServiceUnavailableException
      *         se o MS1 estiver fora do ar.
-     * @throws org.springframework.security.authentication.BadCredentialsException
-     *         se as credenciais forem inválidas (não deve ser lançada daqui — ver adapter).
+     * @throws com.nttdata.financeiro.ms2.transaction.service.application.exception.InvalidCredentialsException
+     *         se as credenciais forem inválidas.
      */
     UUID autenticar(String email, String password);
 

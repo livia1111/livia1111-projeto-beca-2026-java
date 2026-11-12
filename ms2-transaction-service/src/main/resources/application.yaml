@@ -19,7 +19,7 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-    baseline-on-migrate: true
+    baseline-on-migrate: false
 
 management:
   endpoints:
@@ -37,3 +37,7 @@ springdoc:
 ms1:
   api:
     url: ${MS1_API_URL:http://localhost:8080}
+
+mockapi:
+  api:
+    url: ${MOCKAPI_URL:https://6af4c3e555a1de7dcf046d53.mockapi.io/api}
