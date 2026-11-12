@@ -2,6 +2,7 @@ package com.nttdata.financeiro.ms2.transaction.service.adapter.out.persistence;
 
 import com.nttdata.financeiro.ms2.transaction.service.adapter.out.persistence.entity.TransactionJpaEntity;
 import com.nttdata.financeiro.ms2.transaction.service.application.port.out.TransactionRepository;
+import com.nttdata.financeiro.ms2.transaction.service.domain.model.ExchangeRateSnapshot;
 import com.nttdata.financeiro.ms2.transaction.service.domain.model.Transaction;
 import com.nttdata.financeiro.ms2.transaction.service.domain.model.TransactionType;
 
@@ -46,8 +47,10 @@ public class TransactionPersistenceAdapter implements TransactionRepository {
     }
 
     @Override
-    public BigDecimal calcularSaldo(UUID userId) {
-        return repository.calcularSaldo(userId);
+    public BigDecimal calcularSaidasAprovadas(UUID userId, Instant inicio, Instant fim) {
+        return repository.calcularSaidasAprovadas(userId, inicio, fim,
+                com.nttdata.financeiro.ms2.transaction.service.domain.model.TransactionStatus.APROVADA,
+                TransactionType.DEPOSITO);
     }
 
     // ==========================================
@@ -55,20 +58,32 @@ public class TransactionPersistenceAdapter implements TransactionRepository {
     // ==========================================
 
     private TransactionJpaEntity paraEntidade(Transaction t) {
+        ExchangeRateSnapshot rate = t.getExchangeRate();
         return new TransactionJpaEntity(
                 t.getId(), t.getUserId(), t.getTargetUserId(),
                 t.getType(), t.getStatus(), t.getAmount(),
+                rate != null ? rate.usdRate() : null,
+                rate != null ? rate.eurRate() : null,
+                rate != null ? rate.rateDate() : null,
                 t.getDescription(), t.getCategory(), t.getRejectionReason(),
                 t.getOriginalTransactionId(), t.getCreatedAt()
         );
     }
 
     private Transaction paraDominio(TransactionJpaEntity e) {
+        ExchangeRateSnapshot rate = paraSnapshot(e);
         return Transaction.reconstituir(
                 e.getId(), e.getUserId(), e.getTargetUserId(),
-                e.getType(), e.getStatus(), e.getAmount(),
+                e.getType(), e.getStatus(), e.getAmount(), rate,
                 e.getDescription(), e.getCategory(), e.getRejectionReason(),
                 e.getOriginalTransactionId(), e.getCreatedAt()
         );
+    }
+
+    private ExchangeRateSnapshot paraSnapshot(TransactionJpaEntity e) {
+        if (e.getUsdRate() == null && e.getEurRate() == null && e.getRateDate() == null) {
+            return null;
+        }
+        return new ExchangeRateSnapshot(e.getRateDate(), e.getUsdRate(), e.getEurRate());
     }
 }

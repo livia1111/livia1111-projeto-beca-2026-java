@@ -17,5 +17,5 @@ public interface TransactionRepository {
 
     List<Transaction> listar(UUID userId, Instant inicio, Instant fim, TransactionType tipo);
 
-    BigDecimal calcularSaldo(UUID userId);
+    BigDecimal calcularSaidasAprovadas(UUID userId, Instant inicio, Instant fim);
 }

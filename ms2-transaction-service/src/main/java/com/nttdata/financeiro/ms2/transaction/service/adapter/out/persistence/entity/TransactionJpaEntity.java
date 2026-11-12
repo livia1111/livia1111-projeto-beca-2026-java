@@ -2,6 +2,7 @@ package com.nttdata.financeiro.ms2.transaction.service.adapter.out.persistence.e
 
 import com.nttdata.financeiro.ms2.transaction.service.domain.model.TransactionStatus;
 import com.nttdata.financeiro.ms2.transaction.service.domain.model.TransactionType;
+import com.nttdata.financeiro.ms2.transaction.service.domain.model.Category;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,6 +12,7 @@ import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -38,11 +40,21 @@ public class TransactionJpaEntity {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
 
+    @Column(name = "usd_rate", precision = 19, scale = 8)
+    private BigDecimal usdRate;
+
+    @Column(name = "eur_rate", precision = 19, scale = 8)
+    private BigDecimal eurRate;
+
+    @Column(name = "rate_date")
+    private LocalDate rateDate;
+
     @Column(length = 255)
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 50)
-    private String category;
+    private Category category;
 
     @Column(name = "rejection_reason", length = 255)
     private String rejectionReason;
@@ -59,7 +71,9 @@ public class TransactionJpaEntity {
 
     public TransactionJpaEntity(UUID id, UUID userId, UUID targetUserId,
                                 TransactionType type, TransactionStatus status,
-                                BigDecimal amount, String description, String category,
+                                BigDecimal amount, BigDecimal usdRate, BigDecimal eurRate,
+                                LocalDate rateDate,
+                                String description, Category category,
                                 String rejectionReason, UUID originalTransactionId,
                                 Instant createdAt) {
         this.id = id;
@@ -68,6 +82,9 @@ public class TransactionJpaEntity {
         this.type = type;
         this.status = status;
         this.amount = amount;
+        this.usdRate = usdRate;
+        this.eurRate = eurRate;
+        this.rateDate = rateDate;
         this.description = description;
         this.category = category;
         this.rejectionReason = rejectionReason;
@@ -82,8 +99,11 @@ public class TransactionJpaEntity {
     public TransactionType getType() { return type; }
     public TransactionStatus getStatus() { return status; }
     public BigDecimal getAmount() { return amount; }
+    public BigDecimal getUsdRate() { return usdRate; }
+    public BigDecimal getEurRate() { return eurRate; }
+    public LocalDate getRateDate() { return rateDate; }
     public String getDescription() { return description; }
-    public String getCategory() { return category; }
+    public Category getCategory() { return category; }
     public String getRejectionReason() { return rejectionReason; }
     public UUID getOriginalTransactionId() { return originalTransactionId; }
     public Instant getCreatedAt() { return createdAt; }

@@ -1,6 +1,8 @@
 package com.nttdata.financeiro.ms2.transaction.service.application.service;
 
+import com.nttdata.financeiro.ms2.transaction.service.application.exception.BusinessValidationException;
 import com.nttdata.financeiro.ms2.transaction.service.application.port.out.TransactionRepository;
+import com.nttdata.financeiro.ms2.transaction.service.domain.model.Category;
 import com.nttdata.financeiro.ms2.transaction.service.domain.model.Transaction;
 import com.nttdata.financeiro.ms2.transaction.service.domain.model.TransactionStatus;
 import com.nttdata.financeiro.ms2.transaction.service.domain.model.TransactionType;
@@ -34,7 +36,7 @@ class ListTransactionsServiceTest {
         TransactionType tipo = TransactionType.COMPRA;
         Transaction transaction = Transaction.reconstituir(UUID.randomUUID(), userId, null,
                 tipo, TransactionStatus.APROVADA, new BigDecimal("50"),
-                "teste", "lazer", null, null, Instant.now());
+                null, "teste", Category.LAZER, null, null, Instant.now());
 
         when(repository.listar(userId, inicio, fim, tipo)).thenReturn(List.of(transaction));
 
@@ -53,5 +55,16 @@ class ListTransactionsServiceTest {
 
         assertTrue(result.isEmpty());
         verify(repository).listar(userId, null, null, null);
+    }
+
+    @Test
+    void periodoInicialPosteriorAoFinalRejeitadoNoCasoDeUso() {
+        UUID userId = UUID.randomUUID();
+        Instant inicio = Instant.parse("2026-11-30T00:00:00Z");
+        Instant fim = Instant.parse("2026-11-01T00:00:00Z");
+
+        assertThrows(BusinessValidationException.class,
+                () -> service.listar(userId, inicio, fim, null));
+        verify(repository, never()).listar(any(), any(), any(), any());
     }
 }

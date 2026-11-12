@@ -33,19 +33,18 @@ public interface TransactionJpaRepository extends JpaRepository<TransactionJpaEn
             @Param("tipo") TransactionType tipo
     );
 
-    /**
-     * Calcula o saldo: soma depósitos e subtrai saídas aprovadas.
-     */
     @Query("""
-            SELECT COALESCE(SUM(
-                CASE
-                    WHEN t.type = 'DEPOSITO' THEN t.amount
-                    ELSE -t.amount
-                END
-            ), 0)
+            SELECT COALESCE(SUM(t.amount), 0)
             FROM TransactionJpaEntity t
             WHERE t.userId = :userId
-              AND t.status = 'APROVADA'
+              AND t.status = :status
+              AND t.type <> :depositType
+              AND t.createdAt >= :inicio
+              AND t.createdAt < :fim
             """)
-    BigDecimal calcularSaldo(@Param("userId") UUID userId);
+    BigDecimal calcularSaidasAprovadas(@Param("userId") UUID userId,
+                                       @Param("inicio") Instant inicio,
+                                       @Param("fim") Instant fim,
+                                       @Param("status") TransactionStatus status,
+                                       @Param("depositType") TransactionType depositType);
 }

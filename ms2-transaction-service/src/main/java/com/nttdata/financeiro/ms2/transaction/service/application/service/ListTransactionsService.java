@@ -1,5 +1,6 @@
 package com.nttdata.financeiro.ms2.transaction.service.application.service;
 
+import com.nttdata.financeiro.ms2.transaction.service.application.exception.BusinessValidationException;
 import com.nttdata.financeiro.ms2.transaction.service.application.port.in.ListTransactionsUseCase;
 import com.nttdata.financeiro.ms2.transaction.service.application.port.out.TransactionRepository;
 import com.nttdata.financeiro.ms2.transaction.service.domain.model.Transaction;
@@ -19,6 +20,10 @@ public class ListTransactionsService implements ListTransactionsUseCase {
 
     @Override
     public List<Transaction> listar(UUID userId, Instant inicio, Instant fim, TransactionType tipo) {
+        if (inicio != null && fim != null && inicio.isAfter(fim)) {
+            throw new BusinessValidationException(
+                    "A data inicial não pode ser posterior à data final.");
+        }
         return repository.listar(userId, inicio, fim, tipo);
     }
 }

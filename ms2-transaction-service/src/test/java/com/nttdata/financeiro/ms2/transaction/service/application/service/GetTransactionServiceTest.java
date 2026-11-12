@@ -34,7 +34,7 @@ class GetTransactionServiceTest {
         UUID transactionId = UUID.randomUUID();
         Transaction transaction = Transaction.reconstituir(transactionId, ownerId, null,
                 TransactionType.DEPOSITO, TransactionStatus.APROVADA,
-                new BigDecimal("100"), "teste", null, null, null, Instant.now());
+                new BigDecimal("100"), null, "teste", null, null, null, Instant.now());
 
         when(repository.buscarPorId(transactionId)).thenReturn(Optional.of(transaction));
 
@@ -60,7 +60,7 @@ class GetTransactionServiceTest {
         UUID transactionId = UUID.randomUUID();
         Transaction transaction = Transaction.reconstituir(transactionId, ownerId, null,
                 TransactionType.DEPOSITO, TransactionStatus.APROVADA,
-                new BigDecimal("100"), "teste", null, null, null, Instant.now());
+                new BigDecimal("100"), null, "teste", null, null, null, Instant.now());
 
         when(repository.buscarPorId(transactionId)).thenReturn(Optional.of(transaction));
 
